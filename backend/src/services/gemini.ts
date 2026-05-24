@@ -11,7 +11,7 @@ export async function generateGuidance(
   vision: VisionResult,
   sopMatches: SOPChunk[]
 ): Promise<GuidanceResponse> {
-  const model = getGenAI().getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = getGenAI().getGenerativeModel({ model: 'gemini-3.5-flash' });
 
   const sopContext = sopMatches.length > 0
     ? sopMatches.map((chunk, i) =>
