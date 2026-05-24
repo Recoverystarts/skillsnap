@@ -1,0 +1,15 @@
+{
+  "name": "skillsnap",
+  "version": "0.1.0",
+  "private": true,
+  "description": "B2B AI platform - workers snap a photo, get verified guidance from company SOPs",
+  "workspaces": ["shared", "backend", "frontend"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build": "npm run build -w shared && npm run build -w backend && npm run build -w frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.0"
+  }
+}
