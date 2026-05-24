@@ -47,8 +47,7 @@ class ApiClient {
 
   async register(email: string, password: string, name: string) {
     const res = await this.request('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name }),
+      method: 'POST', body: JSON.stringify({ email, password, name }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
@@ -59,8 +58,7 @@ class ApiClient {
 
   async login(email: string, password: string) {
     const res = await this.request('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
+      method: 'POST', body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
@@ -76,6 +74,12 @@ class ApiClient {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Scan failed');
     return data;
+  }
+
+  async getScanHistory() {
+    const res = await this.request('/api/history');
+    const data = await res.json();
+    return data.scans || [];
   }
 
   async uploadSOP(file: File) {
