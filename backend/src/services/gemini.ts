@@ -1,24 +1,20 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { VisionResult, SOPChunk, GuidanceResponse, GuidanceStep, SOPReference } from '@skillsnap/shared';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+let genAI: GoogleGenerativeAI | null = null;
+function getGenAI() {
+  if (!genAI) genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+  return genAI;
+}
 
-/**
- * Tier 3: Gemini Synthesis Leader
- * Cross-references vision results with SOP knowledge
- * Generates verified step-by-step guidance with safety overlay
- * 
- * CRITICAL SAFETY RULE: Never hallucinate safety information.
- * If no SOP match found, say "consult your supervisor."
- */
 export async function generateGuidance(
   vision: VisionResult,
   sopMatches: SOPChunk[]
 ): Promise<GuidanceResponse> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = getGenAI().getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   const sopContext = sopMatches.length > 0
-    ? sopMatches.map((chunk, i) => 
+    ? sopMatches.map((chunk, i) =>
         `[SOP Source ${i + 1} - Page ${chunk.pageNumber}]\n${chunk.content}`
       ).join('\n\n')
     : 'NO SOP DOCUMENTS AVAILABLE - provide general industry guidance only and advise consulting supervisor.';
@@ -52,14 +48,13 @@ Generate a step-by-step guide in JSON format ONLY (no markdown, no backticks):
   "confidence": 0.0-1.0
 }
 
-Keep steps practical and specific to what the worker is looking at. Max 8 steps.`;
+Keep steps practical and specific. Max 8 steps.`;
 
   try {
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
     const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const parsed = JSON.parse(jsonStr);
-
     return {
       scanId: `scan_${Date.now()}`,
       steps: (parsed.steps || []).map((s: any) => ({
@@ -77,7 +72,7 @@ Keep steps practical and specific to what the worker is looking at. Max 8 steps.
         excerpt: r.excerpt || '',
       })) as SOPReference[],
       confidence: parsed.confidence || 0,
-      processingTimeMs: 0, // Set by caller
+      processingTimeMs: 0,
     };
   } catch (error) {
     console.error('[Gemini] Synthesis failed:', error);
