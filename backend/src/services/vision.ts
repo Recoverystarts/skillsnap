@@ -8,7 +8,7 @@ function getGenAI() {
 }
 
 export async function analyzeImage(imageBuffer: Buffer): Promise<VisionResult> {
-  const model = getGenAI().getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const model = getGenAI().getGenerativeModel({ model: 'gemini-3.5-flash' });
 
   const imagePart = {
     inlineData: {
