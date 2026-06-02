@@ -5,6 +5,7 @@ import { Dashboard } from './components/Dashboard';
 import { ScanScreen } from './components/ScanScreen';
 import { GuidanceView } from './components/GuidanceView';
 import { SOPManager } from './components/SOPManager';
+import { LandingPage } from './components/LandingPage';
 
 type Screen = 'dashboard' | 'scan' | 'results' | 'sops';
 
@@ -13,8 +14,23 @@ export function App() {
   const [screen, setScreen] = useState<Screen>('dashboard');
   const [scanResult, setScanResult] = useState<any>(null);
   const [scanHistory, setScanHistory] = useState<any[]>([]);
+  const [showAuth, setShowAuth] = useState(false);
 
-  useEffect(() => { setIsAuth(api.isAuthenticated()); }, []);
+  const handleDemoLogin = async () => {
+    try {
+      await api.demoLogin();
+      setIsAuth(true);
+    } catch (err) {
+      console.error('Demo login failed:', err);
+    }
+  };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('demo') === 'true' && !api.isAuthenticated()) {
+      handleDemoLogin();
+    }
+  }, []);
 
   const handleScanComplete = (result: any) => {
     setScanResult(result);
@@ -22,7 +38,32 @@ export function App() {
     setScreen('results');
   };
 
-  if (!isAuth) return <AuthScreen onAuth={() => setIsAuth(true)} />;
+  const handleHistoryClick = async (scanId: string) => {
+    try {
+      const scan = await api.getScanDetail(scanId);
+      const result = {
+        visionSummary: scan.scene_description,
+        objectsDetected: scan.objects_detected,
+        processingTimeMs: scan.processing_time_ms,
+        confidence: scan.confidence,
+        steps: scan.guidance_steps,
+        safetyWarnings: scan.safety_warnings,
+        imageUrl: scan.image_url,
+        createdAt: scan.created_at,
+      };
+      setScanResult(result);
+      setScreen('results');
+    } catch (err) {
+      console.error('Failed to load scan:', err);
+    }
+  };
+
+  if (!isAuth && !showAuth) {
+    return <LandingPage onSignIn={() => setShowAuth(true)} onDemo={handleDemoLogin} />;
+  }
+  if (!isAuth && showAuth) {
+    return <AuthScreen onAuth={() => setIsAuth(true)} onBack={() => setShowAuth(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#06060f] text-white flex flex-col">
@@ -39,7 +80,7 @@ export function App() {
 
       {/* Content */}
       <main className="flex-1 pb-20">
-        {screen === 'dashboard' && <Dashboard onNavigate={setScreen} scanHistory={scanHistory} />}
+        {screen === 'dashboard' && <Dashboard onNavigate={setScreen} scanHistory={scanHistory} onHistoryClick={handleHistoryClick} />}
         {screen === 'scan' && <ScanScreen onComplete={handleScanComplete} onBack={() => setScreen('dashboard')} />}
         {screen === 'results' && scanResult && <GuidanceView result={scanResult} onNewScan={() => setScreen('scan')} onBack={() => setScreen('dashboard')} />}
         {screen === 'sops' && <SOPManager onBack={() => setScreen('dashboard')} />}

@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 
-interface Props { onNavigate: (screen: string) => void; scanHistory: any[]; }
+interface Props {
+  onNavigate: (screen: string) => void;
+  scanHistory: any[];
+  onHistoryClick: (scanId: string) => void;
+}
 
-export function Dashboard({ onNavigate, scanHistory }: Props) {
+export function Dashboard({ onNavigate, scanHistory, onHistoryClick }: Props) {
   const user = api.getUser();
   const [stats, setStats] = useState<any>(null);
   const [dbHistory, setDbHistory] = useState<any[]>([]);
@@ -21,6 +25,7 @@ export function Dashboard({ onNavigate, scanHistory }: Props) {
   }, []);
 
   const allHistory = [...scanHistory, ...dbHistory.map((s: any) => ({
+    id: s.id,
     visionSummary: s.scene_description,
     objectsDetected: s.objects_detected,
     processingTimeMs: s.processing_time_ms,
@@ -55,15 +60,14 @@ export function Dashboard({ onNavigate, scanHistory }: Props) {
         <div className="relative">
           <span className="text-4xl mb-3 block">📸</span>
           <h3 className="text-xl font-bold text-amber-400">Snap & Get Guidance</h3>
-          <p className="text-white/50 text-sm mt-1">Point your camera at your work area for AI-powered safety guidance verified against your company SOPs</p>
+          <p className="text-white/50 text-sm mt-1">Point your camera at your work area for AI-powered job planning guidance matched to your company procedures</p>
         </div>
       </button>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <StatCard label="Total Scans" value={uniqueHistory.length.toString()} icon="🔍" />
         <StatCard label="SOPs Loaded" value={sopCount.toString()} icon="📄" sub={chunkCount > 0 ? `${chunkCount} chunks` : undefined} />
-        <StatCard label="Safety Score" value="A+" icon="🛡️" />
       </div>
 
       {/* SOP management */}
@@ -72,7 +76,7 @@ export function Dashboard({ onNavigate, scanHistory }: Props) {
         <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-xl">📋</div>
         <div className="flex-1">
           <p className="font-medium">Company SOPs</p>
-          <p className="text-white/40 text-sm">Upload and manage your safety procedures</p>
+          <p className="text-white/40 text-sm">Upload and manage your company procedures</p>
         </div>
         <span className="text-white/20 group-hover:text-white/40 transition">→</span>
       </button>
@@ -83,7 +87,7 @@ export function Dashboard({ onNavigate, scanHistory }: Props) {
           <span className="text-3xl block mb-2">🚀</span>
           <h3 className="font-bold text-amber-400">Get Started</h3>
           <p className="text-white/50 text-sm mt-2 leading-relaxed">
-            Upload your company's safety procedures first, then scan your workspace. 
+            Upload your company's work procedures first, then scan your workspace.
             AI will verify guidance against your actual SOPs — not generic advice.
           </p>
           <button onClick={() => onNavigate('sops')}
@@ -99,8 +103,12 @@ export function Dashboard({ onNavigate, scanHistory }: Props) {
           <h3 className="text-sm font-medium text-white/40 mb-3">Recent Scans</h3>
           <div className="space-y-2">
             {uniqueHistory.slice(0, 8).map((scan, i) => (
-              <div key={i} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 flex gap-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm ${
+              <button
+                key={i}
+                onClick={() => scan.id && onHistoryClick(scan.id)}
+                disabled={!scan.id}
+                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 flex gap-3 text-left hover:bg-white/[0.06] hover:border-white/[0.10] transition disabled:cursor-default">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${
                   (scan.confidence || 0) >= 0.8 ? 'bg-green-500/10' : 'bg-amber-400/10'
                 }`}>
                   {(scan.confidence || 0) >= 0.8 ? '✅' : '🔍'}
@@ -112,13 +120,14 @@ export function Dashboard({ onNavigate, scanHistory }: Props) {
                     {scan.createdAt && <span> • {new Date(scan.createdAt).toLocaleDateString()}</span>}
                   </p>
                 </div>
-              </div>
+                {scan.id && <span className="text-white/20 self-center flex-shrink-0">→</span>}
+              </button>
             ))}
           </div>
         </div>
       )}
 
-      <p className="text-center text-white/10 text-[10px] pt-4">SkillSnap v0.4.0 • Powered by Gemini AI</p>
+      <p className="text-center text-white/10 text-[10px] pt-4">SkillSnap v0.6.0 • Powered by Gemini AI</p>
     </div>
   );
 }

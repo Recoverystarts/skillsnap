@@ -10,10 +10,10 @@ historyRouter.get('/', authMiddleware, async (req: any, res) => {
     const db = getPool();
     const result = await db.query(
       `SELECT id, scene_description, objects_detected, confidence, guidance_steps,
-              safety_warnings, processing_time_ms, created_at
-       FROM scan_requests 
-       WHERE user_id = $1 
-       ORDER BY created_at DESC 
+              safety_warnings, processing_time_ms, image_url, created_at
+       FROM scan_requests
+       WHERE user_id = $1
+       ORDER BY created_at DESC
        LIMIT 50`,
       [req.user.userId]
     );

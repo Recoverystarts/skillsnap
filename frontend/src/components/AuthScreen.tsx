@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { api } from '../api';
 
-interface Props { onAuth: () => void; }
+interface Props { onAuth: () => void; onBack?: () => void; }
 
-export function AuthScreen({ onAuth }: Props) {
+export function AuthScreen({ onAuth, onBack }: Props) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,7 +73,12 @@ export function AuthScreen({ onAuth }: Props) {
           </button>
         </div>
 
-        <p className="text-center text-white/20 text-xs mt-8">
+        {onBack && (
+          <button onClick={onBack} className="block mx-auto mt-6 text-white/30 text-sm hover:text-white/60 transition">
+            ← Back
+          </button>
+        )}
+        <p className="text-center text-white/20 text-xs mt-4">
           Using AI to help the human, not replace the human
         </p>
       </div>

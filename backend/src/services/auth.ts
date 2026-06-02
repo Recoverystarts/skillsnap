@@ -72,6 +72,48 @@ export async function loginUser(email: string, password: string): Promise<{ user
   };
 }
 
+export async function demoLogin(): Promise<{ user: User; token: string }> {
+  const db = getPool();
+
+  let result = await db.query(
+    'SELECT id, email, name, company_id, role FROM users WHERE email = $1',
+    ['demo@skillsnap.dev']
+  );
+
+  let user;
+  if (result.rows.length === 0) {
+    let companyResult = await db.query(
+      `SELECT id FROM companies WHERE name = 'SkillSnap Demo Company'`
+    );
+    let companyId: string;
+    if (companyResult.rows.length === 0) {
+      companyResult = await db.query(
+        `INSERT INTO companies (name, industry) VALUES ('SkillSnap Demo Company', 'Construction') RETURNING id`
+      );
+    }
+    companyId = companyResult.rows[0].id;
+
+    const passwordHash = await bcrypt.hash('demo-not-for-login-xprize', 10);
+    const insertResult = await db.query(
+      `INSERT INTO users (email, password_hash, name, company_id, role)
+       VALUES ($1, $2, 'Demo User', $3, 'admin')
+       RETURNING id, email, name, company_id, role`,
+      ['demo@skillsnap.dev', passwordHash, companyId]
+    );
+    user = insertResult.rows[0];
+  } else {
+    user = result.rows[0];
+  }
+
+  const token = jwt.sign(
+    { userId: user.id, companyId: user.company_id, role: user.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRY }
+  );
+
+  return { user, token };
+}
+
 export function verifyToken(token: string): { userId: string; companyId: string; role: string } {
   return jwt.verify(token, JWT_SECRET) as any;
 }

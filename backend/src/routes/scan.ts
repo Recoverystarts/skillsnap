@@ -87,6 +87,10 @@ scanRouter.post('/', upload.single('image'), async (req: any, res) => {
       objectsDetected: visionResult.objects.length,
     };
 
+    // Save image as base64 data URL (stopgap until GCS is configured)
+    const mimeType = req.file.mimetype || 'image/jpeg';
+    const imageUrl = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+
     // Update the scan record with final pipeline output.
     if (scanId) {
       db.query(
@@ -96,8 +100,9 @@ scanRouter.post('/', upload.single('image'), async (req: any, res) => {
            confidence = $3,
            guidance_steps = $4,
            safety_warnings = $5,
-           processing_time_ms = $6
-         WHERE id = $7`,
+           processing_time_ms = $6,
+           image_url = $7
+         WHERE id = $8`,
         [
           visionResult.sceneDescription,
           visionResult.objects.length,
@@ -105,6 +110,7 @@ scanRouter.post('/', upload.single('image'), async (req: any, res) => {
           JSON.stringify(result.steps),
           JSON.stringify(result.safetyWarnings),
           processingTimeMs,
+          imageUrl,
           scanId,
         ]
       ).catch(err => console.error('[Scan] Failed to update scan:', err));

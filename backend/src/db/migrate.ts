@@ -21,6 +21,7 @@ export async function runMigrations() {
     ALTER TABLE scan_requests ADD COLUMN IF NOT EXISTS guidance_steps JSONB;
     ALTER TABLE scan_requests ADD COLUMN IF NOT EXISTS safety_warnings JSONB;
     ALTER TABLE scan_requests ADD COLUMN IF NOT EXISTS processing_time_ms INTEGER;
+    ALTER TABLE scan_requests ADD COLUMN IF NOT EXISTS image_url TEXT;
   `).catch(() => {});
 
   // ── 005: Agent execution logging (v0.5.0) ──

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser } from '../services/auth';
+import { registerUser, loginUser, demoLogin } from '../services/auth';
 
 export const authRouter = Router();
 
@@ -27,5 +27,15 @@ authRouter.post('/login', async (req, res) => {
     res.json(result);
   } catch (error: any) {
     res.status(401).json({ error: error.message });
+  }
+});
+
+authRouter.post('/demo', async (_req, res) => {
+  try {
+    const result = await demoLogin();
+    res.json(result);
+  } catch (error: any) {
+    console.error('[Demo] Error:', error);
+    res.status(500).json({ error: 'Demo login failed' });
   }
 });
