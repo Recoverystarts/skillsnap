@@ -6,6 +6,10 @@ import type { SOPChunk } from '@skillsnap/shared';
  * Search SOPs using vector similarity (pgvector cosine distance)
  * This is Tier 2 of the three-tier pipeline:
  * Vision → Knowledge Gathering (this) → Synthesis
+ *
+ * v0.5.0: each returned chunk also carries `relevanceScore` (1 - cosine distance)
+ * and `documentTitle` for agent-execution logging. These are extras on top of the
+ * `SOPChunk` shape — consumers that need them should cast.
  */
 export async function searchSOPs(
   companyId: string,
@@ -36,7 +40,7 @@ export async function searchSOPs(
       distance: number;
       doc_title: string;
     }>(
-      `SELECT 
+      `SELECT
         c.id, c.document_id, c.content, c.page_number, c.chunk_index,
         c.embedding <=> $1::vector AS distance,
         d.title AS doc_title
@@ -64,7 +68,10 @@ export async function searchSOPs(
       content: r.content,
       pageNumber: r.page_number || 0,
       chunkIndex: r.chunk_index,
-    }));
+      // Extra fields for agent-execution logging (not in SOPChunk type).
+      relevanceScore: Math.max(0, 1 - (r.distance ?? 1)),
+      documentTitle: r.doc_title || 'Unknown',
+    })) as SOPChunk[];
   } catch (error) {
     console.error('[RAG] Search failed:', error);
     // Graceful degradation: return empty rather than crash the pipeline
@@ -95,7 +102,7 @@ export async function hybridSearchSOPs(
       .split(/\s+/)
       .filter(w => w.length > 3)
       .slice(0, 5);
-    
+
     const keywordPattern = keywords.join('|');
 
     const results = await query<{
@@ -108,7 +115,7 @@ export async function hybridSearchSOPs(
       keyword_score: number;
       combined_score: number;
     }>(
-      `SELECT 
+      `SELECT
         c.id, c.document_id, c.content, c.page_number, c.chunk_index,
         (1 - (c.embedding <=> $1::vector)) AS vector_score,
         CASE WHEN c.content ~* $4 THEN 0.2 ELSE 0 END AS keyword_score,

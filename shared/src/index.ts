@@ -65,6 +65,7 @@ export interface SOPChunk {
 export interface GuidanceResponse {
   scanId: string;
   steps: GuidanceStep[];
+  completionCriteria?: string;
   safetyWarnings: string[];
   sopReferences: SOPReference[];
   confidence: number;

@@ -19,7 +19,7 @@ export async function generateGuidance(
       ).join('\n\n')
     : 'NO SOP DOCUMENTS AVAILABLE - provide general industry guidance only and advise consulting supervisor.';
 
-  const prompt = `You are a workplace guidance assistant. A worker has taken a photo of their work area.
+  const prompt = `You are an experienced construction foreman helping a worker plan and execute the job in front of them. Your job is to give them a clear, step-by-step plan that gets the work done right — with safety built into each step, not bolted on at the end.
 
 SCENE ANALYSIS:
 ${vision.sceneDescription}
@@ -30,25 +30,38 @@ ${vision.objects.map(o => `- ${o.name} (${o.category}, confidence: ${Math.round(
 COMPANY SOP REFERENCES:
 ${sopContext}
 
-SAFETY RULES:
-- NEVER make up safety procedures. If unsure, say "Consult your supervisor for specific safety requirements."
-- Always list relevant PPE requirements if identifiable from context
-- Flag any visible hazards from the scene analysis
-- If SOP documents are available, cite them. If not, clearly state guidance is general.
+GROUND RULES:
+- NEVER invent safety procedures, dimensions, torque specs, or regulatory requirements. If you don't have it from the SOP or scene, say "Confirm with your supervisor."
+- If SOP documents are available, pull specs and procedures from them directly and cite the source. If not, say guidance is general and recommend consulting the supervisor for specifics.
+- Tone: knowledgeable coworker, not a compliance officer. Direct, practical, respectful of the worker's experience.
+- Safety belongs inside each step — woven into the "how to do it," not in a separate warning section.
 
-Generate a step-by-step guide in JSON format ONLY (no markdown, no backticks):
+Generate a job plan in JSON format ONLY (no markdown, no backticks):
 {
   "steps": [
-    {"stepNumber": 1, "instruction": "Clear main instruction", "detail": "Optional detail", "safetyNote": "Optional safety note", "sopSource": "Optional SOP reference"}
+    {
+      "stepNumber": 1,
+      "instruction": "What to do — the actual work task for this step",
+      "detail": "How to do it — technique, measurements, specs, and safety considerations integrated naturally (e.g., 'Set trench box before stepping in; verify shoring extends 300mm above grade')",
+      "safetyNote": "Only include if there is a step-specific critical safety point that must be called out separately — keep it brief and action-oriented, not generic",
+      "sopSource": "SOP title and page if this step draws from company documents"
+    }
   ],
-  "safetyWarnings": ["Any critical safety warnings"],
+  "completionCriteria": "What the finished work should look like — describe the end state in concrete terms so the worker has a mental picture of success before they start",
   "sopReferences": [
     {"documentTitle": "title", "pageNumber": 1, "relevanceScore": 0.9, "excerpt": "relevant excerpt"}
   ],
+  "safetyWarnings": [],
   "confidence": 0.0-1.0
 }
 
-Keep steps practical and specific. Max 8 steps.`;
+Rules for the plan:
+- Steps follow the natural work sequence — setup, then execution, then verification
+- Each step should be something the worker can act on immediately
+- Include measurements and specs where visible or available from SOPs
+- Max 8 steps — combine minor sub-tasks, keep major phases separate
+- completionCriteria must be specific and visual: what does a passing inspection look like?
+- safetyWarnings array: leave empty unless there is an immediate life-safety hazard visible in the scene that must be addressed BEFORE work begins`;
 
   try {
     const result = await model.generateContent(prompt);
@@ -64,6 +77,7 @@ Keep steps practical and specific. Max 8 steps.`;
         safetyNote: s.safetyNote || undefined,
         sopSource: s.sopSource || undefined,
       })) as GuidanceStep[],
+      completionCriteria: parsed.completionCriteria || undefined,
       safetyWarnings: parsed.safetyWarnings || [],
       sopReferences: (parsed.sopReferences || []).map((r: any) => ({
         documentTitle: r.documentTitle || '',

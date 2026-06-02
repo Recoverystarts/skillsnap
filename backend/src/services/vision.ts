@@ -17,25 +17,25 @@ export async function analyzeImage(imageBuffer: Buffer): Promise<VisionResult> {
     },
   };
 
-  const prompt = `You are a workplace scene analyzer for a construction/industrial safety system.
+  const prompt = `You are a construction site analyst helping experienced workers plan their next steps.
 Analyze this image and respond in JSON format ONLY (no markdown, no backticks):
 {
   "objects": [
     {"name": "object name", "confidence": 0.0-1.0, "category": "tool|material|equipment|environment|safety|other"}
   ],
-  "sceneDescription": "One paragraph describing the work scene, what tools/materials are visible, what task appears to be happening, and any safety considerations",
+  "sceneDescription": "One paragraph describing the work scene from a job-planning perspective: what task appears to be in progress or about to start, what stage of the work this represents, what materials and equipment are on hand and ready to use, any visible dimensions or site conditions that would affect planning (trench depth, pipe size, slope, soil type, clearances), and what constraints or hazards are present that the job plan must account for. Focus on what a foreman would need to know to direct the next steps.",
   "confidence": 0.0-1.0
 }
 
 Categories:
 - tool: hand tools, power tools, measuring devices
-- material: pipes, fittings, concrete, lumber, wire
-- equipment: heavy machinery, vehicles, scaffolding
-- environment: trenches, buildings, roads, terrain
-- safety: PPE, barriers, signage, hazards
+- material: pipes, fittings, concrete, lumber, wire, bedding material
+- equipment: heavy machinery, vehicles, scaffolding, shoring, laser levels
+- environment: trenches, buildings, roads, terrain, soil conditions, grades
+- safety: PPE, barriers, signage, shoring, existing hazards that affect work sequencing
 - other: anything else notable
 
-Be specific about object names. If you cannot identify the scene, set confidence to 0.1.`;
+Be specific. Estimate dimensions where visible. Note what's present AND what appears to be missing but needed. If you cannot identify the scene, set confidence to 0.1.`;
 
   try {
     const result = await model.generateContent([prompt, imagePart]);

@@ -5,6 +5,7 @@ import { scanRouter } from './routes/scan';
 import { sopRouter } from './routes/sop';
 import { authRouter } from './routes/auth';
 import { historyRouter } from './routes/history';
+import { statsRouter } from './routes/stats';
 import { healthCheck } from './db/pool';
 import { runMigrations } from './db/migrate';
 import { authMiddleware } from './services/auth';
@@ -23,7 +24,7 @@ app.get('/health', async (_req, res) => {
   res.json({
     status: dbHealthy ? 'ok' : 'degraded',
     service: 'skillsnap-api',
-    version: '0.4.0',
+    version: '0.5.0',
     database: dbHealthy ? 'connected' : 'unavailable',
     timestamp: new Date().toISOString(),
   });
@@ -36,6 +37,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/scan', authMiddleware, scanRouter);
 app.use('/api/sop', authMiddleware, sopRouter);
 app.use('/api/history', historyRouter);
+app.use('/api/stats', authMiddleware, statsRouter);
 
 // 404
 app.use((_req, res) => { res.status(404).json({ error: 'Not found' }); });
@@ -56,7 +58,7 @@ async function start() {
     }
   }
   app.listen(PORT, () => {
-    console.log(`SkillSnap API v0.4.0 running on port ${PORT}`);
+    console.log(`SkillSnap API v0.5.0 running on port ${PORT}`);
   });
 }
 
