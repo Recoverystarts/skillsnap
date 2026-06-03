@@ -57,10 +57,11 @@ export async function seedDemoSOPs(companyId: string): Promise<void> {
     for (let i = 0; i < sop.chunks.length; i++) {
       const content = sop.chunks[i];
       const embedding = await generateEmbedding(content);
+      const embeddingStr = `[${embedding.join(',')}]`;
       await db.query(
         `INSERT INTO sop_chunks (document_id, company_id, chunk_index, content, embedding)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [documentId, companyId, i, content, JSON.stringify(embedding)]
+         VALUES ($1, $2, $3, $4, $5::vector)`,
+        [documentId, companyId, i, content, embeddingStr]
       );
     }
   }
