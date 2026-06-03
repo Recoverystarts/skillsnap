@@ -1,5 +1,5 @@
 import { getPool } from '../db/pool';
-import { generateEmbedding } from '../services/embedding';
+import { generateEmbeddings } from '../services/embedding';
 
 const DEMO_SOPS = [
   {
@@ -54,14 +54,13 @@ export async function seedDemoSOPs(companyId: string): Promise<void> {
     );
     const documentId = docResult.rows[0].id;
 
+    const embeddings = await generateEmbeddings(sop.chunks);
     for (let i = 0; i < sop.chunks.length; i++) {
-      const content = sop.chunks[i];
-      const embedding = await generateEmbedding(content);
-      const embeddingStr = `[${embedding.join(',')}]`;
+      const embeddingStr = `[${embeddings[i].join(',')}]`;
       await db.query(
         `INSERT INTO sop_chunks (document_id, company_id, chunk_index, content, embedding)
          VALUES ($1, $2, $3, $4, $5::vector)`,
-        [documentId, companyId, i, content, embeddingStr]
+        [documentId, companyId, i, sop.chunks[i], embeddingStr]
       );
     }
   }
