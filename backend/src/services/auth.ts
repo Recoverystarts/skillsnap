@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { getPool } from '../db/pool';
+import { seedDemoSOPs } from './demo-seed';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'skillsnap-xprize-2026-jwt-secret';
 const JWT_EXPIRY = '7d';
@@ -92,6 +93,12 @@ export async function demoLogin(): Promise<{ user: User; token: string }> {
       );
     }
     companyId = companyResult.rows[0].id;
+
+    try {
+      await seedDemoSOPs(companyId);
+    } catch (err) {
+      console.error('[Demo] Failed to seed demo SOPs:', err);
+    }
 
     const passwordHash = await bcrypt.hash('demo-not-for-login-xprize', 10);
     const insertResult = await db.query(

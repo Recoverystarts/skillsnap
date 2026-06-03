@@ -103,9 +103,9 @@ export function LandingPage({ onSignIn, onDemo }: Props) {
       {/* Social proof / competition badge */}
       <section className="relative z-10 max-w-xl mx-auto px-6 py-12 text-center">
         <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
-          <p className="text-xs text-amber-400 font-semibold uppercase tracking-widest mb-2">XPRIZE Rapid Reskilling</p>
+          <p className="text-xs text-amber-400 font-semibold uppercase tracking-widest mb-2">BUILD WITH GEMINI XPRIZE</p>
           <p className="text-white/60 text-sm leading-relaxed">
-            Built for the XPRIZE Rapid Reskilling competition — proving that AI can accelerate
+            Built for the Build with Gemini XPRIZE competition — proving that AI can accelerate
             how people learn real-world skills, not replace the humans who teach them.
           </p>
         </div>
