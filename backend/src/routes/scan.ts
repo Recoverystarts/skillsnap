@@ -80,16 +80,19 @@ scanRouter.post('/', upload.single('image'), async (req: any, res) => {
     }).catch(() => {});
 
     const processingTimeMs = Date.now() - startTime;
+    // Save image as base64 data URL (stopgap until GCS is configured)
+    const mimeType = req.file.mimetype || 'image/jpeg';
+    const imageUrl = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+
     const result = {
       ...guidance,
       processingTimeMs,
       visionSummary: visionResult.sceneDescription,
       objectsDetected: visionResult.objects.length,
+      imageUrl,
     };
 
-    // Save image as base64 data URL (stopgap until GCS is configured)
-    const mimeType = req.file.mimetype || 'image/jpeg';
-    const imageUrl = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+
 
     // Update the scan record with final pipeline output.
     if (scanId) {

@@ -14,6 +14,7 @@ export function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [screen, setScreen] = useState<Screen>('dashboard');
   const [scanResult, setScanResult] = useState<any>(null);
+  const [scanImage, setScanImage] = useState<string | null>(null);
   const [scanHistory, setScanHistory] = useState<any[]>([]);
   const [demoLoading, setDemoLoading] = useState(false);
 
@@ -26,8 +27,9 @@ export function App() {
     }
   }, []);
 
-  const handleScanComplete = (result: any) => {
+  const handleScanComplete = (result: any, imagePreview?: string) => {
     setScanResult(result);
+    setScanImage(imagePreview || result.imageUrl || null);
     setScanHistory(prev => [result, ...prev].slice(0, 20));
     setScreen('results');
   };
@@ -60,6 +62,7 @@ export function App() {
           processingTimeMs: detail.processing_time_ms,
           imageUrl: detail.image_url,
         });
+        setScanImage(detail.image_url || null);
         setScreen('results');
         return;
       } catch (err) {
@@ -104,9 +107,9 @@ export function App() {
 
       {/* Content */}
       <main className="flex-1 pb-20">
-        {screen === 'dashboard' && <Dashboard onNavigate={setScreen} scanHistory={scanHistory} onHistoryClick={handleHistoryClick} />}
+        {screen === 'dashboard' && <Dashboard onNavigate={(s: string) => setScreen(s as Screen)} scanHistory={scanHistory} onHistoryClick={handleHistoryClick} />}
         {screen === 'scan' && <ScanScreen onComplete={handleScanComplete} onBack={() => setScreen('dashboard')} />}
-        {screen === 'results' && scanResult && <GuidanceView result={scanResult} onNewScan={() => setScreen('scan')} onBack={() => setScreen('dashboard')} />}
+        {screen === 'results' && scanResult && <GuidanceView result={scanResult} scanImage={scanImage} onNewScan={() => setScreen('scan')} onBack={() => setScreen('dashboard')} />}
         {screen === 'sops' && <SOPManager onBack={() => setScreen('dashboard')} />}
       </main>
 

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { api } from '../api';
 
-interface Props { onComplete: (result: any) => void; onBack: () => void; }
+interface Props { onComplete: (result: any, imagePreview?: string) => void; onBack: () => void; }
 
 export function ScanScreen({ onComplete, onBack }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -32,13 +32,13 @@ export function ScanScreen({ onComplete, onBack }: Props) {
   const doScan = async (blob: Blob) => {
     setScanning(true);
     setError('');
-    const phases = ['Analyzing scene...', 'Identifying hazards...', 'Searching SOPs...', 'Generating guidance...'];
+    const phases = ['Analyzing scene...', 'Identifying materials & tools...', 'Searching SOPs...', 'Generating guidance...'];
     let i = 0;
     const interval = setInterval(() => { setScanPhase(phases[Math.min(i++, phases.length - 1)]); }, 3500);
     setScanPhase(phases[0]);
     try {
       const result = await api.scan(blob);
-      onComplete(result);
+      onComplete(result, preview || undefined);
     } catch (err: any) {
       setError(err.message);
     } finally {
