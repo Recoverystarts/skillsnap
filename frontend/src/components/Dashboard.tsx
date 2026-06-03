@@ -41,8 +41,8 @@ export function Dashboard({ onNavigate, scanHistory, onHistoryClick }: Props) {
     return true;
   });
 
-  const sopCount = stats?.totalDocuments || stats?.total_documents || 0;
-  const chunkCount = stats?.totalChunks || stats?.total_chunks || 0;
+  const sopCount = stats?.doc_count ?? stats?.totalDocuments ?? stats?.total_documents ?? 0;
+  const chunkCount = stats?.chunk_count ?? stats?.totalChunks ?? stats?.total_chunks ?? 0;
 
   return (
     <div className="p-4 space-y-5 max-w-lg mx-auto">
