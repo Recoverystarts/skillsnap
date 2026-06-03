@@ -110,6 +110,11 @@ export async function demoLogin(): Promise<{ user: User; token: string }> {
     user = insertResult.rows[0];
   } else {
     user = result.rows[0];
+    try {
+      await seedDemoSOPs(user.company_id);
+    } catch (err) {
+      console.error('[Demo] Failed to seed demo SOPs:', err);
+    }
   }
 
   const token = jwt.sign(
