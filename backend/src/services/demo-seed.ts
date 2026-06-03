@@ -38,7 +38,13 @@ export async function seedDemoSOPs(companyId: string): Promise<void> {
     'SELECT COUNT(*) FROM sop_documents WHERE company_id = $1',
     [companyId]
   );
-  if (parseInt(countResult.rows[0].count, 10) > 0) return;
+  const existingCount = parseInt(countResult.rows[0].count, 10);
+  if (existingCount >= DEMO_SOPS.length) return;
+
+  // Partial seed exists — clean it up and re-seed from scratch
+  if (existingCount > 0) {
+    await db.query('DELETE FROM sop_documents WHERE company_id = $1', [companyId]);
+  }
 
   for (const sop of DEMO_SOPS) {
     const docResult = await db.query(
