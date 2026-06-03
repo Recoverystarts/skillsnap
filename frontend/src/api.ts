@@ -45,15 +45,6 @@ class ApiClient {
     return res;
   }
 
-  async demoLogin() {
-    const res = await fetch(`${API_URL}/api/auth/demo`, { method: 'POST' });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Demo login failed');
-    this.setToken(data.token);
-    this.setUser(data.user);
-    return data;
-  }
-
   async register(email: string, password: string, name: string) {
     const res = await this.request('/api/auth/register', {
       method: 'POST', body: JSON.stringify({ email, password, name }),
@@ -71,6 +62,17 @@ class ApiClient {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
+    this.setToken(data.token);
+    this.setUser(data.user);
+    return data;
+  }
+
+  async demoLogin() {
+    const res = await this.request('/api/auth/demo', {
+      method: 'POST', body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Demo login failed');
     this.setToken(data.token);
     this.setUser(data.user);
     return data;

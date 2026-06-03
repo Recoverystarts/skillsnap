@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 
-interface Props {
-  onNavigate: (screen: string) => void;
-  scanHistory: any[];
-  onHistoryClick: (scanId: string) => void;
-}
+interface Props { onNavigate: (screen: string) => void; scanHistory: any[]; onHistoryClick?: (scan: any) => void; }
 
 export function Dashboard({ onNavigate, scanHistory, onHistoryClick }: Props) {
   const user = api.getUser();
@@ -31,6 +27,9 @@ export function Dashboard({ onNavigate, scanHistory, onHistoryClick }: Props) {
     processingTimeMs: s.processing_time_ms,
     confidence: s.confidence,
     createdAt: s.created_at,
+    imageUrl: s.image_url,
+    steps: s.guidance_steps,
+    safetyWarnings: s.safety_warnings,
   }))];
 
   // Deduplicate by vision summary
@@ -75,8 +74,8 @@ export function Dashboard({ onNavigate, scanHistory, onHistoryClick }: Props) {
         className="w-full flex items-center gap-4 bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 hover:bg-white/[0.05] transition text-left group">
         <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-xl">📋</div>
         <div className="flex-1">
-          <p className="font-medium">Company SOPs</p>
-          <p className="text-white/40 text-sm">Upload and manage your company procedures</p>
+          <p className="font-medium">Company Procedures</p>
+          <p className="text-white/40 text-sm">Upload and manage your work procedures</p>
         </div>
         <span className="text-white/20 group-hover:text-white/40 transition">→</span>
       </button>
@@ -87,8 +86,8 @@ export function Dashboard({ onNavigate, scanHistory, onHistoryClick }: Props) {
           <span className="text-3xl block mb-2">🚀</span>
           <h3 className="font-bold text-amber-400">Get Started</h3>
           <p className="text-white/50 text-sm mt-2 leading-relaxed">
-            Upload your company's work procedures first, then scan your workspace.
-            AI will verify guidance against your actual SOPs — not generic advice.
+            Upload your company's work procedures first, then scan your workspace. 
+            AI will match guidance to your actual SOPs — not generic advice.
           </p>
           <button onClick={() => onNavigate('sops')}
             className="mt-4 px-6 py-2.5 bg-amber-400/20 text-amber-400 rounded-xl text-sm font-medium hover:bg-amber-400/30 transition">
@@ -97,17 +96,17 @@ export function Dashboard({ onNavigate, scanHistory, onHistoryClick }: Props) {
         </div>
       )}
 
-      {/* Scan history */}
+      {/* Scan history — NOW CLICKABLE */}
       {uniqueHistory.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-white/40 mb-3">Recent Scans</h3>
           <div className="space-y-2">
             {uniqueHistory.slice(0, 8).map((scan, i) => (
               <button
-                key={i}
-                onClick={() => scan.id && onHistoryClick(scan.id)}
-                disabled={!scan.id}
-                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 flex gap-3 text-left hover:bg-white/[0.06] hover:border-white/[0.10] transition disabled:cursor-default">
+                key={scan.id || i}
+                onClick={() => onHistoryClick?.(scan)}
+                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 flex gap-3 hover:bg-white/[0.05] hover:border-amber-400/20 transition text-left"
+              >
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${
                   (scan.confidence || 0) >= 0.8 ? 'bg-green-500/10' : 'bg-amber-400/10'
                 }`}>
@@ -120,7 +119,7 @@ export function Dashboard({ onNavigate, scanHistory, onHistoryClick }: Props) {
                     {scan.createdAt && <span> • {new Date(scan.createdAt).toLocaleDateString()}</span>}
                   </p>
                 </div>
-                {scan.id && <span className="text-white/20 self-center flex-shrink-0">→</span>}
+                <span className="text-white/20 self-center">→</span>
               </button>
             ))}
           </div>

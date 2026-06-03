@@ -37,6 +37,13 @@ export function AuthScreen({ onAuth, onBack }: Props) {
       </div>
 
       <div className="relative z-10 w-full max-w-sm">
+        {/* Back button */}
+        {onBack && (
+          <button onClick={onBack} className="text-white/40 text-sm hover:text-white/60 transition mb-6 flex items-center gap-1">
+            ← Back
+          </button>
+        )}
+
         {/* Logo */}
         <div className="text-center mb-10">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-400/20">
@@ -73,12 +80,7 @@ export function AuthScreen({ onAuth, onBack }: Props) {
           </button>
         </div>
 
-        {onBack && (
-          <button onClick={onBack} className="block mx-auto mt-6 text-white/30 text-sm hover:text-white/60 transition">
-            ← Back
-          </button>
-        )}
-        <p className="text-center text-white/20 text-xs mt-4">
+        <p className="text-center text-white/20 text-xs mt-8">
           Using AI to help the human, not replace the human
         </p>
       </div>
