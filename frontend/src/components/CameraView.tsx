@@ -81,7 +81,7 @@ export function CameraView({ onCapture, isScanning }: Props) {
         </div>
       )}
       <p className="text-sm text-white/50 text-center max-w-xs">
-        {hasCamera ? 'Point camera at work area and tap to get guidance.' : 'Upload a photo of your work area to get AI-powered safety guidance.'}
+        {hasCamera ? 'Point camera at work area and tap to get guidance.' : 'Upload a photo of your work area to get AI-powered job planning guidance.'}
       </p>
     </div>
   );
